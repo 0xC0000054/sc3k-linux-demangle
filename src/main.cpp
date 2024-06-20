@@ -187,7 +187,7 @@ static void DemangledInputFile(const std::filesystem::path& input, const std::fi
 
     }
 
-    out << '}' << std::endl;
+    out << "};" << std::endl;
 }
 
 static std::filesystem::path GetTemporaryFilePath()
