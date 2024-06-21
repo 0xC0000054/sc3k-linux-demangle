@@ -22,12 +22,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif // _WIN32
 
 extern "C"
 {
@@ -207,33 +204,33 @@ static void DemangledInputFile(const std::filesystem::path& input, const std::fi
     out << "};" << std::endl;
 }
 
+// https://stackoverflow.com/a/24586587
+static std::string GetRandomFileName(std::string::size_type length)
+{
+    static auto& chrs = "0123456789"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    thread_local static std::mt19937 rg{ std::random_device{}() };
+    thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
+
+    std::string s;
+
+    s.reserve(length);
+
+    while (length--)
+    {
+        s += chrs[pick(rg)];
+    }
+
+    return s;
+}
+
 static std::filesystem::path GetTemporaryFilePath()
 {
-    std::filesystem::path path;
-
-#ifdef _WIN32
-    constexpr int GuidStringLength = 40;
-
-    wchar_t guidString[GuidStringLength]{};
-    GUID guid{};
-
-    if (FAILED(CoCreateGuid(&guid)))
-    {
-        throw std::runtime_error("CoCreateGUID failed");
-    }
-
-
-    if (StringFromGUID2(guid, guidString, GuidStringLength) == 0)
-    {
-        throw std::runtime_error("StringFromGUID2 failed");
-    }
-
-    path = std::filesystem::temp_directory_path();
-    path /= guidString;
+    std::filesystem::path path = std::filesystem::temp_directory_path();;
+    path /= GetRandomFileName(8);
     path.append(L".txt");
-#else
-#error "You must add temporary filename generation code for this platform."
-#endif // WIN32
 
     return path;
 }
