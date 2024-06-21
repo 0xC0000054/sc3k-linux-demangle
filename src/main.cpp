@@ -204,7 +204,6 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
         }
 
         out << "    virtual void* " << resultAsStringView.substr(functionNameStart) << " = 0;" << std::endl;
-
     }
 
     out << "};" << std::endl;
