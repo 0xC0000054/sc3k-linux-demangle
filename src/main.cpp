@@ -123,6 +123,8 @@ static std::string GetDemangledLine(const char* const mangledLine)
 
 static void DemangledInputFile(const std::filesystem::path& input, const std::filesystem::path& output)
 {
+    constexpr std::string_view ThunkPrefix = "__thunk_";
+
     std::ifstream in(input, std::ifstream::in);
     std::ofstream out(output, std::ofstream::out);
 
@@ -133,6 +135,21 @@ static void DemangledInputFile(const std::filesystem::path& input, const std::fi
     {
         std::string line;
         std::getline(in, line);
+
+        if (line.starts_with(ThunkPrefix))
+        {
+            // The thunk prefix uses the format: __thunk_<unique number>_
+            // The function name follows this prefix.
+
+            size_t thunkPrefixEnd = line.find('_', ThunkPrefix.size() + 1);
+
+            if (thunkPrefixEnd == std::string::npos)
+            {
+                throw std::runtime_error("Failed to find the end of the thunk prefix.");
+            }
+
+            line.erase(0, thunkPrefixEnd + 1);
+        }
 
         const std::string result = GetDemangledLine(line.c_str());
         std::string_view resultAsStringView(result);
