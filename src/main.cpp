@@ -133,6 +133,12 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
         std::string line;
         std::getline(in, line);
 
+        if (line.length() == 0)
+        {
+            // Skip any blank lines.
+            continue;
+        }
+
         if (line.starts_with(ThunkPrefix))
         {
             // The thunk prefix uses the format: __thunk_<unique number>_
