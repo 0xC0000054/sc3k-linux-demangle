@@ -246,33 +246,40 @@ int main(int nargs, char* argv[])
         return 1;
     }
 
-    bool overwriteInputFile = false;
-
-    const std::filesystem::path inputFile = argv[1];
-    std::filesystem::path outputFile;
-
-    if (nargs == 3)
+    try
     {
-        outputFile = argv[2];
+        bool overwriteInputFile = false;
 
-        if (inputFile.compare(outputFile) == 0)
+        const std::filesystem::path inputFile = argv[1];
+        std::filesystem::path outputFile;
+
+        if (nargs == 3)
+        {
+            outputFile = argv[2];
+
+            if (inputFile.compare(outputFile) == 0)
+            {
+                overwriteInputFile = true;
+                outputFile = GetTemporaryFilePath();
+            }
+        }
+        else
         {
             overwriteInputFile = true;
             outputFile = GetTemporaryFilePath();
         }
-    }
-    else
-    {
-        overwriteInputFile = true;
-        outputFile = GetTemporaryFilePath();
-    }
 
-    DemangledInputFile(inputFile, outputFile);
+        DemangledInputFile(inputFile, outputFile);
 
-    if (overwriteInputFile)
+        if (overwriteInputFile)
+        {
+            std::filesystem::copy_file(outputFile, inputFile, std::filesystem::copy_options::overwrite_existing);
+            std::filesystem::remove(outputFile);
+        }
+    }
+    catch (const std::exception& e)
     {
-        std::filesystem::copy_file(outputFile, inputFile, std::filesystem::copy_options::overwrite_existing);
-        std::filesystem::remove(outputFile);
+        std::cout << e.what() << std::endl;
     }
 
     return 0;
