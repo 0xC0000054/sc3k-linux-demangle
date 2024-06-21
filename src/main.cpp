@@ -118,7 +118,7 @@ static std::string GetDemangledLine(const char* const mangledLine)
     return result;
 }
 
-static void DemangledInputFile(const std::filesystem::path& input, const std::filesystem::path& output)
+static void DemangleInputFile(const std::filesystem::path& input, const std::filesystem::path& output)
 {
     constexpr std::string_view ThunkPrefix = "__thunk_";
 
@@ -266,7 +266,7 @@ int main(int nargs, char* argv[])
             outputFile = GetTemporaryFilePath();
         }
 
-        DemangledInputFile(inputFile, outputFile);
+        DemangleInputFile(inputFile, outputFile);
 
         if (overwriteInputFile)
         {
