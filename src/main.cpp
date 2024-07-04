@@ -120,7 +120,7 @@ static std::string GetDemangledLine(const char* const mangledLine)
 
 static void DemangleInputFile(const std::filesystem::path& input, const std::filesystem::path& output)
 {
-    constexpr std::string_view VirtualFunctionPrototypePrefix = "virtual void*";
+    constexpr std::string_view VirtualFunctionPrototypePrefix = "virtual ";
     constexpr std::string_view ThunkPrefix = "__thunk_";
 
     std::ifstream in(input, std::ifstream::in);
@@ -156,10 +156,17 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
         }
         else if (line.starts_with(VirtualFunctionPrototypePrefix))
         {
-            // The virtual function prototype uses the following format: virtual void* <mangled name>(<parameters>).
+            // The virtual function prototype uses the following format: virtual <return type> <mangled name>(<parameters>).
             // Trim the string to keep only <mangled name>.
 
-            size_t mangledNameStart = VirtualFunctionPrototypePrefix.size() + 1;
+            size_t functionReturnTypeEnd = line.find(' ', VirtualFunctionPrototypePrefix.size() + 1);
+
+            if (functionReturnTypeEnd == std::string::npos)
+            {
+                throw std::runtime_error("Failed to find the end of the virtual function return type.");
+            }
+
+            size_t mangledNameStart = functionReturnTypeEnd + 1;
             size_t mangledNameEnd = line.find('(', mangledNameStart);
 
             if (mangledNameEnd == std::string::npos)
