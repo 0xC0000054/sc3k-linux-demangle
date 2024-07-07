@@ -199,9 +199,19 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
 
                     if (className[0] == 'c')
                     {
-                        // Change the class name to its interface form, the 'c' at the start of the name will be replaced with 'cI'.
-                        // For example cSC3App will be converted to cISC3App.
-                        className.replace(0, 1, "cI");
+                        if (className.starts_with("cRZ"))
+                        {
+                            // The cRZ class prefixes are changed to cIGZ.
+                            // For example, cRZLanguageManager will be converted to cIGZLanguageManager.
+                            className.replace(0, 3, "cIGZ");
+                        }
+                        else
+                        {
+                            // Change the class name to its interface form, the 'c' at the start of the name
+                            // will be replaced with 'cI'.
+                            // For example, cSC3App will be converted to cISC3App.
+                            className.replace(0, 1, "cI");
+                        }
                     }
 
                     out << "#include \"cIGZUnknown.h\"" << std::endl << std::endl;
