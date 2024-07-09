@@ -219,6 +219,7 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
                         }
                     }
 
+                    out << "#pragma once" << std::endl;
                     out << "#include \"cIGZUnknown.h\"" << std::endl << std::endl;
                     out << "class " << className << " : public cIGZUnknown" << std::endl;
                     out << '{' << std::endl;
@@ -229,6 +230,7 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
                 }
                 else
                 {
+                    out << "#pragma once" << std::endl << std::endl;
                     out << "class " << resultAsStringView.substr(0, index) << std::endl;
                     out << '{' << std::endl;
                     out << "public:" << std::endl;
