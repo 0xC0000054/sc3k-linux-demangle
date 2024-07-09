@@ -140,21 +140,11 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
             continue;
         }
 
-        if (line.starts_with(ThunkPrefix))
-        {
-            // The thunk prefix uses the format: __thunk_<unique number>_
-            // The function name follows this prefix.
+        // Strip the virtual function prefix and suffix (if any), then strip the thunk prefix from
+        // the start of the mangled function name (if any).
+        // Both have to be removed for the GCC demangler to be able to process the function name.
 
-            size_t thunkPrefixEnd = line.find('_', ThunkPrefix.size() + 1);
-
-            if (thunkPrefixEnd == std::string::npos)
-            {
-                throw std::runtime_error("Failed to find the end of the thunk prefix.");
-            }
-
-            line.erase(0, thunkPrefixEnd + 1);
-        }
-        else if (line.starts_with(VirtualFunctionPrototypePrefix))
+        if (line.starts_with(VirtualFunctionPrototypePrefix))
         {
             // The virtual function prototype uses the following format: virtual <return type> <mangled name>(<parameters>).
             // Trim the string to keep only <mangled name>.
@@ -175,6 +165,21 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
             }
 
             line = line.substr(mangledNameStart, mangledNameEnd - mangledNameStart);
+        }
+
+        if (line.starts_with(ThunkPrefix))
+        {
+            // The thunk prefix uses the format: __thunk_<unique number>_
+            // The function name follows this prefix.
+
+            size_t thunkPrefixEnd = line.find('_', ThunkPrefix.size() + 1);
+
+            if (thunkPrefixEnd == std::string::npos)
+            {
+                throw std::runtime_error("Failed to find the end of the thunk prefix.");
+            }
+
+            line.erase(0, thunkPrefixEnd + 1);
         }
 
         const std::string result = GetDemangledLine(line.c_str());
