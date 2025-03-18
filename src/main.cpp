@@ -126,7 +126,6 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
     std::ifstream in(input, std::ifstream::in);
     std::ofstream out(output, std::ofstream::out);
 
-    size_t functionNameStart = 0;
     bool isGZUnknownClass = false;
 
     for (size_t lineIndex = 0; in.good(); lineIndex++)
@@ -193,8 +192,7 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
 
             if (index != std::string::npos)
             {
-                functionNameStart = index + 2;
-                isGZUnknownClass = resultAsStringView.substr(functionNameStart).compare("QueryInterface(uint32_t, void**)") == 0;
+                isGZUnknownClass = resultAsStringView.substr(index + 2).compare("QueryInterface(uint32_t, void**)") == 0;
 
                 // Write the class name at the top of the file.
 
@@ -242,8 +240,21 @@ static void DemangleInputFile(const std::filesystem::path& input, const std::fil
             // We don't write the AddRef or Release methods to the file.
             continue;
         }
+        else
+        {
+            // We strip the class name from the start of the function string
+            // when writing it to the output.
+            size_t index = result.find_first_of("::");
 
-        out << "    virtual void* " << resultAsStringView.substr(functionNameStart) << " = 0;" << std::endl;
+            if (index != std::string::npos)
+            {
+                out << "    virtual void* " << resultAsStringView.substr(index + 2) << " = 0;" << std::endl;
+            }
+            else
+            {
+                out << "    virtual void* " << resultAsStringView << " = 0;" << std::endl;
+            }
+        }
     }
 
     out << "};" << std::endl;
